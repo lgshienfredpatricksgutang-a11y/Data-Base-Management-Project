@@ -1,0 +1,639 @@
+-- =============================================================
+-- DATABASE MANAGEMENT - ASSESSMENT 2
+-- Historical STEM Figures Database
+-- Normalized to Third Normal Form (3NF)
+-- =============================================================
+
+-- Drop database if it exists and recreate cleanly
+DROP DATABASE IF EXISTS historical_stem;
+CREATE DATABASE historical_stem CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE historical_stem;
+
+-- =============================================================
+-- SECTION 1: HISTORICAL FIGURES TABLES (3NF Design)
+-- =============================================================
+
+-- Country table: Eliminates repeating country names in Person table,
+-- removing the transitive dependency Person → country_name
+CREATE TABLE Country (
+    country_id   INT          AUTO_INCREMENT PRIMARY KEY,
+    country_name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Field table: Eliminates repeating field names and removes
+-- the multi-valued dependency on the Person table
+CREATE TABLE Field (
+    field_id   INT          AUTO_INCREMENT PRIMARY KEY,
+    field_name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Person table: Core table for historical STEM figures.
+-- death_year is NULL for figures still alive.
+-- All non-key attributes depend solely on person_id (3NF compliant).
+CREATE TABLE Person (
+    person_id   INT          AUTO_INCREMENT PRIMARY KEY,
+    full_name   VARCHAR(200) NOT NULL,
+    first_name  VARCHAR(100),
+    last_name   VARCHAR(100),
+    birth_year  INT,
+    death_year  INT          NULL,        -- NULL = still alive
+    country_id  INT          NOT NULL,
+    biography   TEXT,
+    CONSTRAINT fk_person_country FOREIGN KEY (country_id) REFERENCES Country(country_id)
+);
+
+-- PersonField junction table: Resolves the many-to-many relationship
+-- between Person and Field (a person can contribute to many fields,
+-- and a field can have many contributors)
+CREATE TABLE PersonField (
+    person_id INT NOT NULL,
+    field_id  INT NOT NULL,
+    PRIMARY KEY (person_id, field_id),
+    CONSTRAINT fk_pf_person FOREIGN KEY (person_id) REFERENCES Person(person_id),
+    CONSTRAINT fk_pf_field  FOREIGN KEY (field_id)  REFERENCES Field(field_id)
+);
+
+-- Organization table: Stores employers/institutions
+-- (e.g. NASA, DuPont, Royal Society)
+CREATE TABLE Organization (
+    org_id   INT          AUTO_INCREMENT PRIMARY KEY,
+    org_name VARCHAR(200) NOT NULL UNIQUE
+);
+
+-- PersonOrganization junction table: Many-to-many between Person and Organization
+CREATE TABLE PersonOrganization (
+    person_id INT NOT NULL,
+    org_id    INT NOT NULL,
+    PRIMARY KEY (person_id, org_id),
+    CONSTRAINT fk_po_person FOREIGN KEY (person_id) REFERENCES Person(person_id),
+    CONSTRAINT fk_po_org    FOREIGN KEY (org_id)    REFERENCES Organization(org_id)
+);
+
+-- Collaboration table: Records notable named collaborators for each person
+-- (used to answer queries like "who worked with Einstein?")
+CREATE TABLE Collaboration (
+    collaboration_id   INT          AUTO_INCREMENT PRIMARY KEY,
+    person_id          INT          NOT NULL,
+    collaborator_name  VARCHAR(200) NOT NULL,
+    collaboration_note VARCHAR(500),
+    CONSTRAINT fk_collab_person FOREIGN KEY (person_id) REFERENCES Person(person_id)
+);
+
+-- =============================================================
+-- SECTION 2: INSERT DATA - COUNTRIES
+-- =============================================================
+
+INSERT INTO Country (country_name) VALUES
+('Britain'),
+('Egypt'),
+('France'),
+('Germany'),
+('Iran'),
+('Italy'),
+('Japan'),
+('Poland'),
+('Russia'),
+('Serbia'),
+('Sweden'),
+('USA');
+
+-- =============================================================
+-- SECTION 3: INSERT DATA - FIELDS OF STUDY
+-- =============================================================
+
+INSERT INTO Field (field_name) VALUES
+('Astronomy'),
+('Biology'),
+('Chemistry'),
+('Computing'),
+('Engineering'),
+('Mathematics'),
+('Medicine'),
+('Physics');
+
+-- =============================================================
+-- SECTION 4: INSERT DATA - ORGANIZATIONS
+-- =============================================================
+
+INSERT INTO Organization (org_name) VALUES
+('NASA'),
+('DuPont'),
+('Manhattan Project'),
+('British Coal Utilisation Research Association (BCURA)'),
+('Royal Society'),
+('United States Navy'),
+('Russian Chemical Society');
+
+-- =============================================================
+-- SECTION 5: INSERT DATA - PERSONS
+-- =============================================================
+-- Note: country_id values correspond to Country inserts above
+--   1=Britain, 2=Egypt, 3=France, 4=Germany, 5=Iran,
+--   6=Italy, 7=Japan, 8=Poland, 9=Russia, 10=Serbia,
+--   11=Sweden, 12=USA
+
+INSERT INTO Person (full_name, first_name, last_name, birth_year, death_year, country_id, biography) VALUES
+('Augusta Ada King (Lovelace)', 'Augusta Ada', 'King (Lovelace)', 1815, 1852, 1,
+ 'Augusta Ada King, Countess of Lovelace, was a British mathematician and computer scientist accredited with the first published computer algorithm. She also suggested that it would be possible for computers to do more than simple calculations, perhaps even write music.'),
+
+('Mary Cartwright', 'Mary', 'Cartwright', 1900, 1998, 1,
+ 'In 1936 Mary Cartwright became director of studies in Mathematics at Girton College, Cambridge. Working with Littlewood, she found solutions to problems in differential equations that emerged when modelling radio and RADAR signals. These observations would later contribute to Chaos Theory. She was the first woman to receive the Sylvester Medal, to serve on the Council of the Royal Society, to be President of the Mathematical Association, and to be President of the London Mathematical Society.'),
+
+('Rosalind Franklin', 'Rosalind', 'Franklin', 1920, 1958, 1,
+ 'Rosalind Franklin graduated from the University of Cambridge in 1941, with a degree in Natural Sciences. In 1942 she worked for The British Coal Utilisation Research Association (BCURA). Her work on coal included refining of X-ray crystallography techniques that she later applied to DNA, identifying 2 types of DNA and noting the helix-like structure of one of them in 1951, two years before Watson and Crick started work on their Double Helix Model.'),
+
+('Hertha Ayrton', 'Hertha', 'Ayrton', 1854, 1923, 1,
+ 'In 1899 Hertha Ayrton became the first woman to present her own paper to the Institution of Electrical Engineers (IEE) on the interaction of oxygen and carbon rods in arc lighting, shortly after becoming the first female member of the IEE.'),
+
+('Dorothy Hodgkin', 'Dorothy', 'Hodgkin', 1910, 1994, 1,
+ 'Dorothy Hodgkin was the third woman to win a Nobel Prize in Chemistry for her determinations by X-ray techniques of the structures of important biochemical substances. She confirmed the structure of penicillin and discovered the structures of Vitamin B12 and Insulin.'),
+
+('Hypatia of Alexandria', 'Hypatia', 'of Alexandria', 360, 415, 2,
+ 'Hypatia is the earliest female mathematician whose life is reasonably well documented. She was regarded as the leading mathematician and astronomer in the known world during her lifetime. She continued her father''s work in preserving older Greek science texts and updating many of them by correcting mathematical models.'),
+
+('Emilie du Chatelet', 'Emilie', 'du Chatelet', 1706, 1749, 3,
+ 'Emilie du Chatelet was one of the key figures in the French Enlightenment. Known for her translation into French of Isaac Newton''s Principia, her commentary included the notion of conservation of energy. She established the basis for Kinetic Energy and predicted infrared radiation.'),
+
+('Marie-Sophie Germain', 'Marie-Sophie', 'Germain', 1776, 1831, 3,
+ 'Marie-Sophie Germain was a French mathematician who made significant contributions to number theory, Fermat''s last theorem, and elasticity theory. She corresponded with Gauss, who praised her as having extraordinary talent and superior genius.'),
+
+('Irene Joliot-Curie', 'Irene', 'Joliot-Curie', 1897, 1956, 3,
+ 'Irene Joliot-Curie, daughter of Marie Curie, won the Nobel Prize in Chemistry for the discovery of artificial radioactivity. Alongside her husband, she identified the positron and neutron, and pioneered work into nuclear fission. She worked on France''s first nuclear reactor.'),
+
+('Yvonne Choquet-Bruhat', 'Yvonne', 'Choquet-Bruhat', 1923, NULL, 3,
+ 'Yvonne Choquet-Bruhat was a French mathematician and physicist. She worked with Albert Einstein and proved the local existence and uniqueness of the vacuum Einstein equations, which began the field of study in dynamics in General Relativity.'),
+
+('Emmy Noether', 'Emmy', 'Noether', 1882, 1935, 4,
+ 'Described as the most significant creative mathematical genius thus far produced by Albert Einstein. Emmy Noether was a mathematician whose work showed how the laws of conservation were derived from the laws of symmetry. She created the theoretical groundwork for the Standard Model of Particle Physics.'),
+
+('Ida Noddack', 'Ida', 'Noddack', 1896, 1978, 4,
+ 'Nominated 3 times for a Nobel prize in Chemistry (1933, 1935, and 1937) for the discovery of rhenium and masurium. Her work investigating and refuting Enrico Fermi''s chemical proofs in 1934 was later shown to be correct, leading to the discovery of nuclear fission.'),
+
+('Maria Goeppert Mayer', 'Maria', 'Goeppert Mayer', 1906, 1972, 4,
+ 'Maria Goeppert Mayer was a German theoretical physicist who worked on the Manhattan Project with Edward Teller. She was awarded a Nobel Prize in Physics for her model on the structure of nuclear shells.'),
+
+('Maria Gaetana Agnesi', 'Maria Gaetana', 'Agnesi', 1718, 1799, 6,
+ 'Maria Agnesi was the first woman to publish an original mathematics book in her own name, and the first woman appointed as a mathematics professor at a university in 1750, a role given to her by Pope Benedict XIV.'),
+
+('Fumiko Yonezawa', 'Fumiko', 'Yonezawa', 1938, 2019, 7,
+ 'Fumiko Yonezawa was a Japanese theoretical physicist. She created computer visualisation of the amorphous structures of semiconductors and liquid metals. In 1996 she became the first female President of the Physics Society of Japan.'),
+
+('Marie Sklodowska Curie', 'Marie', 'Sklodowska Curie', 1867, 1934, 8,
+ 'Marie Curie was the first woman to win a Nobel Prize (1903), and one of only 4 people to win two Nobel prizes. She established the foundation for our current Theory of Radioactivity and discovered two new elements: Radium and Polonium.'),
+
+('Julia Lermontova', 'Julia', 'Lermontova', 1846, 1919, 9,
+ 'Julia Lermontova is known as the first Russian female doctor in chemistry, and the third woman to have been given a doctorate in Europe. She was inducted into the Russian Chemical Society in 1875 and developed a device for the continuous distillation of petroleum.'),
+
+('Mileva Maric', 'Mileva', 'Maric', 1875, 1948, 10,
+ 'Mileva Maric Einstein was a Serbian physicist, mathematician, and first wife of Albert Einstein. She attended Zurich Polytechnic alongside Einstein. There is ongoing debate about how much she contributed to Einstein''s work during 1905, sometimes referred to as Einstein''s miracle year.'),
+
+('Sophia Brahe', 'Sophia', 'Brahe', 1559, 1643, 11,
+ 'Sophia Brahe was a Danish noblewoman with knowledge of astronomy, chemistry, and medicine. She assisted her brother Tycho Brahe with his astronomical observations. Their work is now seen as the basis of modern orbit predictions of the planets.'),
+
+('Maria Christina Bruhn', 'Maria Christina', 'Bruhn', 1732, 1808, 11,
+ 'In 1773 Maria Christina Bruhn entered a competition into the creation of moisture- and fire-proof storage canisters for artillery shells, commissioned by the Swedish Army. She was awarded recognition in 1786 for inventing safe canisters.'),
+
+('Grace Hopper', 'Grace', 'Hopper', 1906, 1992, 12,
+ 'Grace Hopper was an American computer scientist and United States Navy rear admiral. One of the first programmers of the Harvard Mark I computer, she invented one of the first linkers and popularized machine-independent programming languages, leading to the development of COBOL.'),
+
+('Stephanie Kwolek', 'Stephanie', 'Kwolek', 1923, 2014, 12,
+ 'Stephanie Kwolek worked for DuPont between 1946 and 1986, where she discovered the first synthetic fibre of exceptional strength and stiffness, poly-paraphenylene terephthalamide, more commonly known as Kevlar. She became the first woman to win the Lavoisier Medal.'),
+
+('Katherine Johnson', 'Katherine', 'Johnson', 1918, 2020, 12,
+ 'Katherine Johnson is an American mathematician whose calculations of orbital mechanics as a NASA employee were critical to the success of the first and subsequent US crewed spaceflights. She was involved in the Mercury project and the Apollo Lunar Module rendezvous paths.'),
+
+('Mary Jackson', 'Mary', 'Jackson', 1921, 2005, 12,
+ 'Mary Jackson was an American mathematician and aerospace engineer at the National Advisory Committee for Aeronautics (NACA), later succeeded by NASA. She worked in several NASA divisions and is a named author on 12 technical papers for NACA and NASA.'),
+
+('Sofya Kovalevskaya', 'Sofya', 'Kovalevskaya', 1850, 1891, 9,
+ 'Sofya Kovalevskaya was the first woman to gain a modern Doctorate, with her dissertation covering partial differential equations, the dynamics of Saturn''s rings, and elliptic integrals. In 1889 she was appointed as the first female full Professor.'),
+
+('Maryam Mirzakhani', 'Maryam', 'Mirzakhani', 1977, 2017, 5,
+ 'In 2014, Maryam Mirzakhani became the first woman and first Iranian to win the Fields Medal, for her work on the dynamics and geometry of Riemann surfaces. She was also the first Iranian woman to receive a gold medal in the International Mathematical Olympiad.');
+
+-- =============================================================
+-- SECTION 6: INSERT DATA - PERSON-FIELD RELATIONSHIPS
+-- =============================================================
+-- Field IDs: 1=Astronomy, 2=Biology, 3=Chemistry, 4=Computing,
+--            5=Engineering, 6=Mathematics, 7=Medicine, 8=Physics
+
+-- Augusta Ada King (Lovelace) - person_id=1
+INSERT INTO PersonField VALUES (1, 6), (1, 4);   -- Mathematics, Computing
+
+-- Mary Cartwright - person_id=2
+INSERT INTO PersonField VALUES (2, 6);            -- Mathematics
+
+-- Rosalind Franklin - person_id=3
+INSERT INTO PersonField VALUES (3, 2), (3, 8);   -- Biology, Physics
+
+-- Hertha Ayrton - person_id=4
+INSERT INTO PersonField VALUES (4, 5), (4, 6), (4, 8); -- Engineering, Mathematics, Physics
+
+-- Dorothy Hodgkin - person_id=5
+INSERT INTO PersonField VALUES (5, 2), (5, 3);   -- Biology, Chemistry
+
+-- Hypatia of Alexandria - person_id=6
+INSERT INTO PersonField VALUES (6, 6), (6, 1);   -- Mathematics, Astronomy
+
+-- Emilie du Chatelet - person_id=7
+INSERT INTO PersonField VALUES (7, 6), (7, 8);   -- Mathematics, Physics
+
+-- Marie-Sophie Germain - person_id=8
+INSERT INTO PersonField VALUES (8, 6), (8, 8);   -- Mathematics, Physics
+
+-- Irene Joliot-Curie - person_id=9
+INSERT INTO PersonField VALUES (9, 3), (9, 8);   -- Chemistry, Physics
+
+-- Yvonne Choquet-Bruhat - person_id=10
+INSERT INTO PersonField VALUES (10, 6), (10, 8); -- Mathematics, Physics
+
+-- Emmy Noether - person_id=11
+INSERT INTO PersonField VALUES (11, 6), (11, 8); -- Mathematics, Physics
+
+-- Ida Noddack - person_id=12
+INSERT INTO PersonField VALUES (12, 3), (12, 8); -- Chemistry, Physics
+
+-- Maria Goeppert Mayer - person_id=13
+INSERT INTO PersonField VALUES (13, 8);           -- Physics
+
+-- Maria Gaetana Agnesi - person_id=14
+INSERT INTO PersonField VALUES (14, 6);           -- Mathematics
+
+-- Fumiko Yonezawa - person_id=15
+INSERT INTO PersonField VALUES (15, 8), (15, 4); -- Physics, Computing
+
+-- Marie Sklodowska Curie - person_id=16
+INSERT INTO PersonField VALUES (16, 8), (16, 3); -- Physics, Chemistry
+
+-- Julia Lermontova - person_id=17
+INSERT INTO PersonField VALUES (17, 3);           -- Chemistry
+
+-- Mileva Maric - person_id=18
+INSERT INTO PersonField VALUES (18, 6), (18, 8); -- Mathematics, Physics
+
+-- Sophia Brahe - person_id=19
+INSERT INTO PersonField VALUES (19, 1), (19, 3), (19, 7); -- Astronomy, Chemistry, Medicine
+
+-- Maria Christina Bruhn - person_id=20
+INSERT INTO PersonField VALUES (20, 3);           -- Chemistry
+
+-- Grace Hopper - person_id=21
+INSERT INTO PersonField VALUES (21, 4);           -- Computing
+
+-- Stephanie Kwolek - person_id=22
+INSERT INTO PersonField VALUES (22, 3);           -- Chemistry
+
+-- Katherine Johnson - person_id=23
+INSERT INTO PersonField VALUES (23, 6);           -- Mathematics
+
+-- Mary Jackson - person_id=24
+INSERT INTO PersonField VALUES (24, 6);           -- Mathematics
+
+-- Sofya Kovalevskaya - person_id=25
+INSERT INTO PersonField VALUES (25, 6);           -- Mathematics
+
+-- Maryam Mirzakhani - person_id=26
+INSERT INTO PersonField VALUES (26, 6);           -- Mathematics
+
+-- =============================================================
+-- SECTION 7: INSERT DATA - PERSON-ORGANIZATION RELATIONSHIPS
+-- =============================================================
+-- Org IDs: 1=NASA, 2=DuPont, 3=Manhattan Project,
+--          4=BCURA, 5=Royal Society, 6=US Navy, 7=Russian Chemical Society
+
+INSERT INTO PersonOrganization VALUES
+(3,  4),   -- Rosalind Franklin → BCURA
+(5,  5),   -- Dorothy Hodgkin  → Royal Society
+(13, 3),   -- Maria Goeppert Mayer → Manhattan Project
+(16, 5),   -- Marie Curie → Royal Society
+(21, 6),   -- Grace Hopper → US Navy
+(22, 2),   -- Stephanie Kwolek → DuPont
+(23, 1),   -- Katherine Johnson → NASA
+(24, 1),   -- Mary Jackson → NASA
+(17, 7);   -- Julia Lermontova → Russian Chemical Society
+
+-- =============================================================
+-- SECTION 8: INSERT DATA - COLLABORATIONS
+-- =============================================================
+
+INSERT INTO Collaboration (person_id, collaborator_name, collaboration_note) VALUES
+(10, 'Albert Einstein', 'Worked with Einstein proving local existence and uniqueness of vacuum Einstein equations'),
+(18, 'Albert Einstein', 'First wife of Albert Einstein; collaborated during his 1905 miracle year'),
+(11, 'Albert Einstein', 'Einstein described Noether as the most significant creative mathematical genius; her work resolved issues in his Theory of Relativity'),
+(2,  'John Edensor Littlewood', 'Collaborated with Littlewood on differential equations relating to RADAR'),
+(9,  'Frederic Joliot-Curie', 'Co-discovered artificial radioactivity with husband Frederic Joliot-Curie'),
+(13, 'Edward Teller', 'Worked with Edward Teller on the Manhattan Project');
+
+-- =============================================================
+-- SECTION 9: BOOKING EVENTS TABLES
+-- =============================================================
+
+-- RoomType: The 2 types of room as specified in the requirements
+CREATE TABLE RoomType (
+    room_type_id INT         AUTO_INCREMENT PRIMARY KEY,
+    type_name    VARCHAR(50) NOT NULL UNIQUE   -- 'Lecture Room' or 'Event Room'
+);
+
+INSERT INTO RoomType (type_name) VALUES ('Lecture Room'), ('Event Room');
+
+-- Room: Individual rooms available for hosting events
+-- Each room is of a specific type (lecture or event room)
+CREATE TABLE Room (
+    room_id      INT          AUTO_INCREMENT PRIMARY KEY,
+    room_name    VARCHAR(100) NOT NULL,
+    capacity     INT          NOT NULL,
+    room_type_id INT          NOT NULL,
+    location     VARCHAR(200),
+    CONSTRAINT fk_room_type FOREIGN KEY (room_type_id) REFERENCES RoomType(room_type_id)
+);
+
+INSERT INTO Room (room_name, capacity, room_type_id, location) VALUES
+('Lovelace Lecture Theatre',  250, 1, 'Main Building, Floor 1'),
+('Curie Lecture Hall',        150, 1, 'Science Wing, Floor 2'),
+('Hopper Seminar Room',        50, 1, 'Tech Block, Floor 3'),
+('Franklin Event Hall',       500, 2, 'Conference Centre, Ground Floor'),
+('Noether Exhibition Space',  300, 2, 'Arts Building, Floor 1'),
+('Kovalevskaya Auditorium',   400, 2, 'Main Building, Floor 2');
+
+-- Speaker: People who deliver talks at events
+CREATE TABLE Speaker (
+    speaker_id INT          AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name  VARCHAR(100) NOT NULL,
+    email      VARCHAR(200) UNIQUE,
+    bio        TEXT
+);
+
+INSERT INTO Speaker (first_name, last_name, email, bio) VALUES
+('Dr. Sarah',   'Whitfield',  's.whitfield@institute.ac.uk',  'Expert in Victorian-era science and the history of computing'),
+('Prof. James', 'Okafor',     'j.okafor@institute.ac.uk',     'Professor of Physics with research interests in radioactivity and nuclear science'),
+('Dr. Aisha',   'Rahman',     'a.rahman@institute.ac.uk',     'Historian of mathematics specialising in 19th and 20th century women in STEM'),
+('Prof. Lena',  'Bergstrom',  'l.bergstrom@institute.ac.uk',  'Astrochemist with a specialism in the early history of astronomy'),
+('Dr. Marcus',  'Chen',       'm.chen@institute.ac.uk',       'Computer scientist and historian of programming languages');
+
+-- Event: Core table for lectures and events about historical STEM figures.
+-- requires_ticket is a boolean flag (TINYINT 0/1).
+CREATE TABLE Event (
+    event_id         INT          AUTO_INCREMENT PRIMARY KEY,
+    title            VARCHAR(300) NOT NULL,
+    event_date       DATE,
+    event_time       TIME,
+    duration_minutes INT,
+    description      TEXT,
+    requires_ticket  TINYINT(1)   NOT NULL DEFAULT 0
+);
+
+INSERT INTO Event (title, event_date, event_time, duration_minutes, description, requires_ticket) VALUES
+('Pioneers of Computing: Ada Lovelace & Grace Hopper',
+ '2026-06-15', '18:00:00', 90,
+ 'An evening lecture exploring the groundbreaking contributions of Ada Lovelace and Grace Hopper to the foundations of modern computing.',
+ 1),
+
+('Radiation and Discovery: The Curie Family Legacy',
+ '2026-07-10', '14:00:00', 120,
+ 'A half-day seminar covering the scientific achievements of Marie Curie and her daughter Irene Joliot-Curie, exploring their Nobel prize-winning work.',
+ 1),
+
+('Women of Mathematics: From Hypatia to Mirzakhani',
+ '2026-08-05', '10:00:00', 180,
+ 'A full morning symposium spanning 1600 years of female mathematicians, including interactive workshops and panel discussions.',
+ 0),
+
+('Unsung Heroines of NASA: Katherine Johnson and Mary Jackson',
+ '2026-09-20', '19:00:00', 60,
+ 'A public lecture celebrating the NASA mathematicians whose calculations powered the Space Race.',
+ 1),
+
+('Crystal Clear: X-ray Crystallography and the Double Helix',
+ '2026-10-12', '15:30:00', 90,
+ 'An exhibition and lecture exploring the pivotal work of Rosalind Franklin and Dorothy Hodgkin in X-ray crystallography.',
+ 0);
+
+-- EventSpeaker: Many-to-many - each event must have at least 1 speaker
+CREATE TABLE EventSpeaker (
+    event_id   INT NOT NULL,
+    speaker_id INT NOT NULL,
+    role       VARCHAR(100) DEFAULT 'Speaker',
+    PRIMARY KEY (event_id, speaker_id),
+    CONSTRAINT fk_es_event   FOREIGN KEY (event_id)   REFERENCES Event(event_id),
+    CONSTRAINT fk_es_speaker FOREIGN KEY (speaker_id) REFERENCES Speaker(speaker_id)
+);
+
+INSERT INTO EventSpeaker VALUES
+(1, 1, 'Lead Speaker'),
+(1, 5, 'Supporting Speaker'),
+(2, 2, 'Lead Speaker'),
+(3, 3, 'Lead Speaker'),
+(3, 4, 'Supporting Speaker'),
+(4, 3, 'Lead Speaker'),
+(5, 2, 'Lead Speaker'),
+(5, 1, 'Supporting Speaker');
+
+-- EventFigure: Many-to-many - each event must have 1 or more historical
+-- figures assigned as topics
+CREATE TABLE EventFigure (
+    event_id  INT NOT NULL,
+    person_id INT NOT NULL,
+    PRIMARY KEY (event_id, person_id),
+    CONSTRAINT fk_ef_event  FOREIGN KEY (event_id)  REFERENCES Event(event_id),
+    CONSTRAINT fk_ef_person FOREIGN KEY (person_id) REFERENCES Person(person_id)
+);
+
+INSERT INTO EventFigure VALUES
+(1, 1),   -- Event 1: Ada Lovelace
+(1, 21),  -- Event 1: Grace Hopper
+(2, 16),  -- Event 2: Marie Curie
+(2, 9),   -- Event 2: Irene Joliot-Curie
+(3, 6),   -- Event 3: Hypatia
+(3, 8),   -- Event 3: Marie-Sophie Germain
+(3, 25),  -- Event 3: Sofya Kovalevskaya
+(3, 26),  -- Event 3: Maryam Mirzakhani
+(3, 14),  -- Event 3: Maria Gaetana Agnesi
+(4, 23),  -- Event 4: Katherine Johnson
+(4, 24),  -- Event 4: Mary Jackson
+(5, 3),   -- Event 5: Rosalind Franklin
+(5, 5);   -- Event 5: Dorothy Hodgkin
+
+-- EventRoom: Many-to-many - each event requires at least 1 room
+CREATE TABLE EventRoom (
+    event_id INT NOT NULL,
+    room_id  INT NOT NULL,
+    PRIMARY KEY (event_id, room_id),
+    CONSTRAINT fk_er_event FOREIGN KEY (event_id) REFERENCES Event(event_id),
+    CONSTRAINT fk_er_room  FOREIGN KEY (room_id)  REFERENCES Room(room_id)
+);
+
+INSERT INTO EventRoom VALUES
+(1, 1),   -- Event 1 → Lovelace Lecture Theatre
+(2, 2),   -- Event 2 → Curie Lecture Hall
+(3, 4),   -- Event 3 → Franklin Event Hall
+(3, 5),   -- Event 3 also uses Noether Exhibition Space
+(4, 1),   -- Event 4 → Lovelace Lecture Theatre
+(5, 5);   -- Event 5 → Noether Exhibition Space
+
+-- Ticket: Stores ticket information for events that require them.
+-- Only populated when Event.requires_ticket = 1.
+CREATE TABLE Ticket (
+    ticket_id          INT           AUTO_INCREMENT PRIMARY KEY,
+    event_id           INT           NOT NULL,
+    ticket_type        VARCHAR(100)  NOT NULL,  -- e.g. 'Standard', 'Concession', 'VIP'
+    price              DECIMAL(8,2)  NOT NULL,
+    quantity_available INT           NOT NULL,
+    quantity_sold      INT           NOT NULL DEFAULT 0,
+    CONSTRAINT fk_ticket_event FOREIGN KEY (event_id) REFERENCES Event(event_id)
+);
+
+-- Ticket data only for events where requires_ticket = 1
+INSERT INTO Ticket (event_id, ticket_type, price, quantity_available) VALUES
+(1, 'Standard',   12.00, 200),
+(1, 'Concession',  6.00,  50),
+(2, 'Standard',   15.00, 100),
+(2, 'Concession',  8.00,  50),
+(4, 'Standard',   10.00, 200),
+(4, 'VIP',        25.00,  20);
+
+
+-- =============================================================
+-- SECTION 10: STORED PROCEDURE
+-- =============================================================
+
+-- Stored procedure to retrieve a full profile for a named historical figure,
+-- including their fields of study and organizations they worked for.
+DELIMITER //
+
+CREATE PROCEDURE GetPersonProfile(IN p_full_name VARCHAR(200))
+BEGIN
+    -- Return basic person info
+    SELECT p.person_id, p.full_name, p.birth_year, p.death_year,
+           c.country_name,
+           CASE WHEN p.death_year IS NULL THEN 'Alive'
+                ELSE CAST(p.death_year - p.birth_year AS CHAR)
+           END AS age_at_death,
+           p.biography
+    FROM Person p
+    JOIN Country c ON p.country_id = c.country_id
+    WHERE p.full_name LIKE CONCAT('%', p_full_name, '%');
+
+    -- Return their fields of study
+    SELECT f.field_name
+    FROM Person p
+    JOIN PersonField pf ON p.person_id = pf.person_id
+    JOIN Field f ON pf.field_id = f.field_id
+    WHERE p.full_name LIKE CONCAT('%', p_full_name, '%');
+
+    -- Return organizations they worked for
+    SELECT o.org_name
+    FROM Person p
+    JOIN PersonOrganization po ON p.person_id = po.person_id
+    JOIN Organization o ON po.org_id = o.org_id
+    WHERE p.full_name LIKE CONCAT('%', p_full_name, '%');
+END //
+
+DELIMITER ;
+
+
+-- =============================================================
+-- SECTION 11: SQL QUERIES (Assessment Questions 1-10)
+-- =============================================================
+
+-- Query 1: List all historical figures born in France
+SELECT p.full_name, p.birth_year, p.death_year, c.country_name
+FROM Person p
+JOIN Country c ON p.country_id = c.country_id
+WHERE c.country_name = 'France'
+ORDER BY p.birth_year;
+
+-- Query 2: List all historical figures who contributed to Computing
+SELECT p.full_name, p.birth_year, p.death_year, c.country_name
+FROM Person p
+JOIN PersonField pf ON p.person_id = pf.person_id
+JOIN Field f ON pf.field_id = f.field_id
+JOIN Country c ON p.country_id = c.country_id
+WHERE f.field_name = 'Computing'
+ORDER BY p.birth_year;
+
+-- Query 3: List all historical figures who contributed to more than 1 field
+SELECT p.full_name,
+       COUNT(pf.field_id) AS number_of_fields,
+       GROUP_CONCAT(f.field_name ORDER BY f.field_name SEPARATOR ', ') AS fields
+FROM Person p
+JOIN PersonField pf ON p.person_id = pf.person_id
+JOIN Field f ON pf.field_id = f.field_id
+GROUP BY p.person_id, p.full_name
+HAVING COUNT(pf.field_id) > 1
+ORDER BY number_of_fields DESC, p.full_name;
+
+-- Query 4: Update Mary Jackson's death year to 2005
+-- (The data incorrectly listed her death as 1944; she actually died in 2005)
+UPDATE Person
+SET death_year = 2005
+WHERE full_name = 'Mary Jackson';
+
+-- Verify the update
+SELECT full_name, birth_year, death_year
+FROM Person
+WHERE full_name = 'Mary Jackson';
+
+-- Query 5: List all historical figures who died before they were 40
+SELECT p.full_name,
+       p.birth_year,
+       p.death_year,
+       (p.death_year - p.birth_year) AS age_at_death,
+       c.country_name
+FROM Person p
+JOIN Country c ON p.country_id = c.country_id
+WHERE p.death_year IS NOT NULL
+  AND (p.death_year - p.birth_year) < 40
+ORDER BY age_at_death;
+
+-- Query 6: Which countries have the most historical figures listed?
+SELECT c.country_name,
+       COUNT(p.person_id) AS number_of_figures
+FROM Country c
+JOIN Person p ON c.country_id = p.country_id
+GROUP BY c.country_id, c.country_name
+ORDER BY number_of_figures DESC;
+
+-- Query 7: Are any historical figures still alive? If so, who?
+SELECT p.full_name,
+       p.birth_year,
+       (2026 - p.birth_year) AS approximate_age,
+       c.country_name
+FROM Person p
+JOIN Country c ON p.country_id = c.country_id
+WHERE p.death_year IS NULL;
+
+-- Query 8: Which historical figures worked for NASA?
+SELECT p.full_name, p.birth_year, p.death_year, c.country_name, o.org_name
+FROM Person p
+JOIN PersonOrganization po ON p.person_id = po.person_id
+JOIN Organization o ON po.org_id = o.org_id
+JOIN Country c ON p.country_id = c.country_id
+WHERE o.org_name = 'NASA'
+ORDER BY p.full_name;
+
+-- Query 9: Which historical figures worked with Einstein?
+SELECT DISTINCT p.full_name,
+       p.birth_year,
+       p.death_year,
+       c.country_name,
+       col.collaboration_note
+FROM Person p
+JOIN Collaboration col ON p.person_id = col.person_id
+JOIN Country c ON p.country_id = c.country_id
+WHERE col.collaborator_name LIKE '%Einstein%'
+ORDER BY p.full_name;
+
+-- Query 10: Which countries have the most fields of research contributions?
+-- Counts distinct field contributions per country (avoids duplicate field counting)
+SELECT c.country_name,
+       COUNT(DISTINCT pf.field_id) AS distinct_fields,
+       GROUP_CONCAT(DISTINCT f.field_name ORDER BY f.field_name SEPARATOR ', ') AS fields_contributed
+FROM Country c
+JOIN Person p ON c.country_id = p.country_id
+JOIN PersonField pf ON p.person_id = pf.person_id
+JOIN Field f ON pf.field_id = f.field_id
+GROUP BY c.country_id, c.country_name
+
+
+ORDER BY distinct_fields DESC;
