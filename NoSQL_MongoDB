@@ -1,0 +1,553 @@
+// =============================================================
+// DATABASE MANAGEMENT - ASSESSMENT 2 (EXTENSION TASK)
+// Historical STEM Figures Database – MongoDB / NoSQL Version
+// =============================================================
+
+// ── STEP 1: Select / create the database ──────────────────────
+use("historical_stem_nosql");
+
+// ── STEP 2: Drop collections if they exist (clean slate) ───────
+db.people.drop();
+db.events.drop();
+
+// =============================================================
+// SECTION 1: INSERT HISTORICAL STEM FIGURES
+// Each document embeds fields, organisations, and collaborators
+// directly — removing the need for junction tables.
+// =============================================================
+
+db.people.insertMany([
+  {
+    full_name:     "Augusta Ada King (Lovelace)",
+    first_name:    "Augusta Ada",
+    last_name:     "King (Lovelace)",
+    birth_year:    1815,
+    death_year:    1852,
+    country:       "Britain",
+    fields:        ["Mathematics", "Computing"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Augusta Ada King, Countess of Lovelace, was a British mathematician and computer scientist accredited with the first published computer algorithm. She also suggested that it would be possible for computers to do more than simple calculations, perhaps even write music."
+  },
+  {
+    full_name:     "Mary Cartwright",
+    first_name:    "Mary",
+    last_name:     "Cartwright",
+    birth_year:    1900,
+    death_year:    1998,
+    country:       "Britain",
+    fields:        ["Mathematics"],
+    organisations: [],
+    collaborators: [{ name: "John Edensor Littlewood", note: "Collaborated on differential equations relating to RADAR" }],
+    biography:     "In 1936 Mary Cartwright became director of studies in Mathematics at Girton College, Cambridge. Working with Littlewood, she found solutions to problems in differential equations that emerged when modelling radio and RADAR signals. These observations would later contribute to Chaos Theory."
+  },
+  {
+    full_name:     "Rosalind Franklin",
+    first_name:    "Rosalind",
+    last_name:     "Franklin",
+    birth_year:    1920,
+    death_year:    1958,
+    country:       "Britain",
+    fields:        ["Biology", "Physics"],
+    organisations: ["British Coal Utilisation Research Association (BCURA)"],
+    collaborators: [],
+    biography:     "Rosalind Franklin graduated from the University of Cambridge in 1941, with a degree in Natural Sciences. Her work on coal included refining of X-ray crystallography techniques that she later applied to DNA, identifying 2 types of DNA and noting the helix-like structure in 1951."
+  },
+  {
+    full_name:     "Hertha Ayrton",
+    first_name:    "Hertha",
+    last_name:     "Ayrton",
+    birth_year:    1854,
+    death_year:    1923,
+    country:       "Britain",
+    fields:        ["Engineering", "Mathematics", "Physics"],
+    organisations: [],
+    collaborators: [],
+    biography:     "In 1899 Hertha Ayrton became the first woman to present her own paper to the Institution of Electrical Engineers (IEE) on the interaction of oxygen and carbon rods in arc lighting."
+  },
+  {
+    full_name:     "Dorothy Hodgkin",
+    first_name:    "Dorothy",
+    last_name:     "Hodgkin",
+    birth_year:    1910,
+    death_year:    1994,
+    country:       "Britain",
+    fields:        ["Biology", "Chemistry"],
+    organisations: ["Royal Society"],
+    collaborators: [],
+    biography:     "Dorothy Hodgkin was the third woman to win a Nobel Prize in Chemistry for her determinations by X-ray techniques of the structures of important biochemical substances."
+  },
+  {
+    full_name:     "Hypatia of Alexandria",
+    first_name:    "Hypatia",
+    last_name:     "of Alexandria",
+    birth_year:    360,
+    death_year:    415,
+    country:       "Egypt",
+    fields:        ["Mathematics", "Astronomy"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Hypatia is the earliest female mathematician whose life is reasonably well documented. She was regarded as the leading mathematician and astronomer in the known world during her lifetime."
+  },
+  {
+    full_name:     "Emilie du Chatelet",
+    first_name:    "Emilie",
+    last_name:     "du Chatelet",
+    birth_year:    1706,
+    death_year:    1749,
+    country:       "France",
+    fields:        ["Mathematics", "Physics"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Emilie du Chatelet was one of the key figures in the French Enlightenment. Known for her translation of Newton's Principia, she established the basis for Kinetic Energy and predicted infrared radiation."
+  },
+  {
+    full_name:     "Marie-Sophie Germain",
+    first_name:    "Marie-Sophie",
+    last_name:     "Germain",
+    birth_year:    1776,
+    death_year:    1831,
+    country:       "France",
+    fields:        ["Mathematics", "Physics"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Marie-Sophie Germain was a French mathematician who made significant contributions to number theory, Fermat's last theorem, and elasticity theory."
+  },
+  {
+    full_name:     "Irene Joliot-Curie",
+    first_name:    "Irene",
+    last_name:     "Joliot-Curie",
+    birth_year:    1897,
+    death_year:    1956,
+    country:       "France",
+    fields:        ["Chemistry", "Physics"],
+    organisations: [],
+    collaborators: [{ name: "Frederic Joliot-Curie", note: "Co-discovered artificial radioactivity" }],
+    biography:     "Irene Joliot-Curie, daughter of Marie Curie, won the Nobel Prize in Chemistry for the discovery of artificial radioactivity. She pioneered work into nuclear fission."
+  },
+  {
+    full_name:     "Yvonne Choquet-Bruhat",
+    first_name:    "Yvonne",
+    last_name:     "Choquet-Bruhat",
+    birth_year:    1923,
+    death_year:    null,       // Still alive
+    country:       "France",
+    fields:        ["Mathematics", "Physics"],
+    organisations: [],
+    collaborators: [{ name: "Albert Einstein", note: "Proved local existence and uniqueness of vacuum Einstein equations" }],
+    biography:     "Yvonne Choquet-Bruhat proved the local existence and uniqueness of the vacuum Einstein equations, beginning the field of dynamics in General Relativity."
+  },
+  {
+    full_name:     "Emmy Noether",
+    first_name:    "Emmy",
+    last_name:     "Noether",
+    birth_year:    1882,
+    death_year:    1935,
+    country:       "Germany",
+    fields:        ["Mathematics", "Physics"],
+    organisations: [],
+    collaborators: [{ name: "Albert Einstein", note: "Einstein described Noether as the most significant creative mathematical genius; her work resolved issues in his Theory of Relativity" }],
+    biography:     "Described as the most significant creative mathematical genius thus far produced by Albert Einstein. Emmy Noether created the theoretical groundwork for the Standard Model of Particle Physics."
+  },
+  {
+    full_name:     "Ida Noddack",
+    first_name:    "Ida",
+    last_name:     "Noddack",
+    birth_year:    1896,
+    death_year:    1978,
+    country:       "Germany",
+    fields:        ["Chemistry", "Physics"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Nominated 3 times for a Nobel prize in Chemistry for the discovery of rhenium. Her work refuting Enrico Fermi's proofs in 1934 was later shown to be correct, leading to the discovery of nuclear fission."
+  },
+  {
+    full_name:     "Maria Goeppert Mayer",
+    first_name:    "Maria",
+    last_name:     "Goeppert Mayer",
+    birth_year:    1906,
+    death_year:    1972,
+    country:       "Germany",
+    fields:        ["Physics"],
+    organisations: ["Manhattan Project"],
+    collaborators: [{ name: "Edward Teller", note: "Worked together on the Manhattan Project" }],
+    biography:     "Maria Goeppert Mayer was awarded a Nobel Prize in Physics for her model on the structure of nuclear shells."
+  },
+  {
+    full_name:     "Maria Gaetana Agnesi",
+    first_name:    "Maria Gaetana",
+    last_name:     "Agnesi",
+    birth_year:    1718,
+    death_year:    1799,
+    country:       "Italy",
+    fields:        ["Mathematics"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Maria Agnesi was the first woman to publish an original mathematics book in her own name, and the first woman appointed as a mathematics professor at a university in 1750."
+  },
+  {
+    full_name:     "Fumiko Yonezawa",
+    first_name:    "Fumiko",
+    last_name:     "Yonezawa",
+    birth_year:    1938,
+    death_year:    2019,
+    country:       "Japan",
+    fields:        ["Physics", "Computing"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Fumiko Yonezawa created computer visualisation of the amorphous structures of semiconductors and liquid metals. In 1996 she became the first female President of the Physics Society of Japan."
+  },
+  {
+    full_name:     "Marie Sklodowska Curie",
+    first_name:    "Marie",
+    last_name:     "Sklodowska Curie",
+    birth_year:    1867,
+    death_year:    1934,
+    country:       "Poland",
+    fields:        ["Physics", "Chemistry"],
+    organisations: ["Royal Society"],
+    collaborators: [],
+    biography:     "Marie Curie was the first woman to win a Nobel Prize (1903), and one of only 4 people to win two Nobel prizes. She discovered two new elements: Radium and Polonium."
+  },
+  {
+    full_name:     "Julia Lermontova",
+    first_name:    "Julia",
+    last_name:     "Lermontova",
+    birth_year:    1846,
+    death_year:    1919,
+    country:       "Russia",
+    fields:        ["Chemistry"],
+    organisations: ["Russian Chemical Society"],
+    collaborators: [],
+    biography:     "Julia Lermontova is known as the first Russian female doctor in chemistry. She developed a device for the continuous distillation of petroleum."
+  },
+  {
+    full_name:     "Mileva Maric",
+    first_name:    "Mileva",
+    last_name:     "Maric",
+    birth_year:    1875,
+    death_year:    1948,
+    country:       "Serbia",
+    fields:        ["Mathematics", "Physics"],
+    organisations: [],
+    collaborators: [{ name: "Albert Einstein", note: "First wife of Albert Einstein; collaborated during his 1905 miracle year" }],
+    biography:     "Mileva Maric Einstein was a Serbian physicist and mathematician. There is ongoing debate about how much she contributed to Einstein's work during 1905."
+  },
+  {
+    full_name:     "Sophia Brahe",
+    first_name:    "Sophia",
+    last_name:     "Brahe",
+    birth_year:    1559,
+    death_year:    1643,
+    country:       "Sweden",
+    fields:        ["Astronomy", "Chemistry", "Medicine"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Sophia Brahe assisted her brother Tycho Brahe with his astronomical observations. Their work is now seen as the basis of modern orbit predictions of the planets."
+  },
+  {
+    full_name:     "Maria Christina Bruhn",
+    first_name:    "Maria Christina",
+    last_name:     "Bruhn",
+    birth_year:    1732,
+    death_year:    1808,
+    country:       "Sweden",
+    fields:        ["Chemistry"],
+    organisations: [],
+    collaborators: [],
+    biography:     "In 1773 Maria Christina Bruhn entered a competition for the creation of moisture- and fire-proof storage canisters for artillery shells. She was awarded recognition in 1786 for inventing safe canisters."
+  },
+  {
+    full_name:     "Grace Hopper",
+    first_name:    "Grace",
+    last_name:     "Hopper",
+    birth_year:    1906,
+    death_year:    1992,
+    country:       "USA",
+    fields:        ["Computing"],
+    organisations: ["United States Navy"],
+    collaborators: [],
+    biography:     "Grace Hopper was an American computer scientist and United States Navy rear admiral. She invented one of the first linkers and popularized machine-independent programming languages, leading to the development of COBOL."
+  },
+  {
+    full_name:     "Stephanie Kwolek",
+    first_name:    "Stephanie",
+    last_name:     "Kwolek",
+    birth_year:    1923,
+    death_year:    2014,
+    country:       "USA",
+    fields:        ["Chemistry"],
+    organisations: ["DuPont"],
+    collaborators: [],
+    biography:     "Stephanie Kwolek discovered the first synthetic fibre of exceptional strength, poly-paraphenylene terephthalamide, more commonly known as Kevlar. She became the first woman to win the Lavoisier Medal."
+  },
+  {
+    full_name:     "Katherine Johnson",
+    first_name:    "Katherine",
+    last_name:     "Johnson",
+    birth_year:    1918,
+    death_year:    2020,
+    country:       "USA",
+    fields:        ["Mathematics"],
+    organisations: ["NASA"],
+    collaborators: [],
+    biography:     "Katherine Johnson's calculations of orbital mechanics as a NASA employee were critical to the success of the first US crewed spaceflights. She was involved in the Mercury project and the Apollo Lunar Module."
+  },
+  {
+    full_name:     "Mary Jackson",
+    first_name:    "Mary",
+    last_name:     "Jackson",
+    birth_year:    1921,
+    death_year:    2005,
+    country:       "USA",
+    fields:        ["Mathematics"],
+    organisations: ["NASA"],
+    collaborators: [],
+    biography:     "Mary Jackson was an American mathematician and aerospace engineer at NASA. She is a named author on 12 technical papers for NACA and NASA."
+  },
+  {
+    full_name:     "Sofya Kovalevskaya",
+    first_name:    "Sofya",
+    last_name:     "Kovalevskaya",
+    birth_year:    1850,
+    death_year:    1891,
+    country:       "Russia",
+    fields:        ["Mathematics"],
+    organisations: [],
+    collaborators: [],
+    biography:     "Sofya Kovalevskaya was the first woman to gain a modern Doctorate, covering partial differential equations and the dynamics of Saturn's rings. In 1889 she was the first female full Professor."
+  },
+  {
+    full_name:     "Maryam Mirzakhani",
+    first_name:    "Maryam",
+    last_name:     "Mirzakhani",
+    birth_year:    1977,
+    death_year:    2017,
+    country:       "Iran",
+    fields:        ["Mathematics"],
+    organisations: [],
+    collaborators: [],
+    biography:     "In 2014, Maryam Mirzakhani became the first woman and first Iranian to win the Fields Medal, for her work on the dynamics and geometry of Riemann surfaces."
+  }
+]);
+
+print("✓ Inserted 26 historical figures into db.people");
+
+// =============================================================
+// SECTION 2: INSERT BOOKING EVENTS
+// Events embed speaker references and figure names directly.
+// =============================================================
+
+db.events.insertMany([
+  {
+    title:            "Pioneers of Computing: Ada Lovelace & Grace Hopper",
+    event_date:       new Date("2026-06-15"),
+    event_time:       "18:00",
+    duration_minutes: 90,
+    description:      "An evening lecture exploring Ada Lovelace and Grace Hopper's contributions to modern computing.",
+    requires_ticket:  true,
+    room_type:        "Lecture Room",
+    room_name:        "Lovelace Lecture Theatre",
+    room_capacity:    250,
+    speakers: [
+      { name: "Dr. Sarah Whitfield", role: "Lead Speaker" },
+      { name: "Dr. Marcus Chen",     role: "Supporting Speaker" }
+    ],
+    figures: ["Augusta Ada King (Lovelace)", "Grace Hopper"],
+    tickets: [
+      { type: "Standard",   price: 12.00, quantity_available: 200, quantity_sold: 0 },
+      { type: "Concession", price:  6.00, quantity_available:  50, quantity_sold: 0 }
+    ]
+  },
+  {
+    title:            "Radiation and Discovery: The Curie Family Legacy",
+    event_date:       new Date("2026-07-10"),
+    event_time:       "14:00",
+    duration_minutes: 120,
+    description:      "A half-day seminar covering the Nobel prize-winning work of Marie Curie and Irene Joliot-Curie.",
+    requires_ticket:  true,
+    room_type:        "Lecture Room",
+    room_name:        "Curie Lecture Hall",
+    room_capacity:    150,
+    speakers: [
+      { name: "Prof. James Okafor", role: "Lead Speaker" }
+    ],
+    figures: ["Marie Sklodowska Curie", "Irene Joliot-Curie"],
+    tickets: [
+      { type: "Standard",   price: 15.00, quantity_available: 100, quantity_sold: 0 },
+      { type: "Concession", price:  8.00, quantity_available:  50, quantity_sold: 0 }
+    ]
+  },
+  {
+    title:            "Women of Mathematics: From Hypatia to Mirzakhani",
+    event_date:       new Date("2026-08-05"),
+    event_time:       "10:00",
+    duration_minutes: 180,
+    description:      "A full morning symposium spanning 1600 years of female mathematicians.",
+    requires_ticket:  false,
+    rooms: [
+      { room_type: "Event Room", room_name: "Franklin Event Hall",      capacity: 500 },
+      { room_type: "Event Room", room_name: "Noether Exhibition Space", capacity: 300 }
+    ],
+    speakers: [
+      { name: "Dr. Aisha Rahman",    role: "Lead Speaker" },
+      { name: "Prof. Lena Bergstrom", role: "Supporting Speaker" }
+    ],
+    figures: ["Hypatia of Alexandria", "Marie-Sophie Germain", "Sofya Kovalevskaya", "Maryam Mirzakhani", "Maria Gaetana Agnesi"],
+    tickets: []
+  },
+  {
+    title:            "Unsung Heroines of NASA: Katherine Johnson and Mary Jackson",
+    event_date:       new Date("2026-09-20"),
+    event_time:       "19:00",
+    duration_minutes: 60,
+    description:      "A public lecture celebrating the NASA mathematicians whose calculations powered the Space Race.",
+    requires_ticket:  true,
+    room_type:        "Lecture Room",
+    room_name:        "Lovelace Lecture Theatre",
+    room_capacity:    250,
+    speakers: [
+      { name: "Dr. Aisha Rahman", role: "Lead Speaker" }
+    ],
+    figures: ["Katherine Johnson", "Mary Jackson"],
+    tickets: [
+      { type: "Standard", price: 10.00, quantity_available: 200, quantity_sold: 0 },
+      { type: "VIP",      price: 25.00, quantity_available:  20, quantity_sold: 0 }
+    ]
+  },
+  {
+    title:            "Crystal Clear: X-ray Crystallography and the Double Helix",
+    event_date:       new Date("2026-10-12"),
+    event_time:       "15:30",
+    duration_minutes: 90,
+    description:      "An exhibition and lecture on the pivotal work of Rosalind Franklin and Dorothy Hodgkin.",
+    requires_ticket:  false,
+    room_type:        "Event Room",
+    room_name:        "Noether Exhibition Space",
+    room_capacity:    300,
+    speakers: [
+      { name: "Prof. James Okafor",  role: "Lead Speaker" },
+      { name: "Dr. Sarah Whitfield", role: "Supporting Speaker" }
+    ],
+    figures: ["Rosalind Franklin", "Dorothy Hodgkin"],
+    tickets: []
+  }
+]);
+
+print("✓ Inserted 5 events into db.events");
+
+// =============================================================
+// SECTION 3: CREATE INDEXES FOR QUERY PERFORMANCE
+// =============================================================
+
+db.people.createIndex({ country: 1 });
+db.people.createIndex({ fields: 1 });
+db.people.createIndex({ death_year: 1 });
+db.people.createIndex({ "organisations": 1 });
+db.people.createIndex({ "collaborators.name": 1 });
+db.events.createIndex({ requires_ticket: 1 });
+db.events.createIndex({ "figures": 1 });
+
+print("✓ Indexes created");
+
+// =============================================================
+// SECTION 4: THE 10 QUERIES (MongoDB Equivalents)
+// =============================================================
+
+// ── Query 1: List all figures born in France ──────────────────
+print("\n── Query 1: Figures born in France ──");
+db.people.find(
+  { country: "France" },
+  { full_name: 1, birth_year: 1, death_year: 1, country: 1, _id: 0 }
+).sort({ birth_year: 1 }).forEach(printjson);
+
+// ── Query 2: Figures who contributed to Computing ─────────────
+print("\n── Query 2: Figures contributing to Computing ──");
+db.people.find(
+  { fields: "Computing" },
+  { full_name: 1, birth_year: 1, death_year: 1, country: 1, _id: 0 }
+).sort({ birth_year: 1 }).forEach(printjson);
+
+// ── Query 3: Figures contributing to more than 1 field ────────
+print("\n── Query 3: Figures with more than 1 field ──");
+db.people.find(
+  { $expr: { $gt: [{ $size: "$fields" }, 1] } },
+  { full_name: 1, fields: 1, _id: 0 }
+).sort({ full_name: 1 }).forEach(printjson);
+
+// ── Query 4: Update Mary Jackson's death year to 2005 ─────────
+print("\n── Query 4: Update Mary Jackson death year ──");
+const q4Result = db.people.updateOne(
+  { full_name: "Mary Jackson" },
+  { $set: { death_year: 2005 } }
+);
+print("Matched:", q4Result.matchedCount, "| Modified:", q4Result.modifiedCount);
+
+// Verify
+db.people.findOne(
+  { full_name: "Mary Jackson" },
+  { full_name: 1, birth_year: 1, death_year: 1, _id: 0 }
+);
+
+// ── Query 5: Figures who died before age 40 ───────────────────
+print("\n── Query 5: Figures who died before age 40 ──");
+db.people.find(
+  {
+    $expr: {
+      $and: [
+        { $ne: ["$death_year", null] },
+        { $lt: [{ $subtract: ["$death_year", "$birth_year"] }, 40] }
+      ]
+    }
+  },
+  {
+    full_name: 1, birth_year: 1, death_year: 1,
+    age_at_death: { $subtract: ["$death_year", "$birth_year"] },
+    _id: 0
+  }
+).sort({ birth_year: 1 }).forEach(printjson);
+
+// ── Query 6: Countries with the most figures ──────────────────
+print("\n── Query 6: Countries with most historical figures ──");
+db.people.aggregate([
+  { $group: { _id: "$country", number_of_figures: { $sum: 1 } } },
+  { $sort: { number_of_figures: -1 } },
+  { $project: { country_name: "$_id", number_of_figures: 1, _id: 0 } }
+]).forEach(printjson);
+
+// ── Query 7: Are any figures still alive? ─────────────────────
+print("\n── Query 7: Living historical figures ──");
+db.people.find(
+  { death_year: null },
+  { full_name: 1, birth_year: 1, country: 1, _id: 0 }
+).forEach(printjson);
+
+// ── Query 8: Figures who worked for NASA ─────────────────────
+print("\n── Query 8: Figures who worked for NASA ──");
+db.people.find(
+  { organisations: "NASA" },
+  { full_name: 1, birth_year: 1, death_year: 1, country: 1, _id: 0 }
+).sort({ full_name: 1 }).forEach(printjson);
+
+// ── Query 9: Figures who worked with Einstein ─────────────────
+print("\n── Query 9: Figures who worked with Einstein ──");
+db.people.find(
+  { "collaborators.name": /Einstein/i },
+  { full_name: 1, birth_year: 1, death_year: 1, country: 1, collaborators: 1, _id: 0 }
+).sort({ full_name: 1 }).forEach(printjson);
+
+// ── Query 10: Countries with most distinct fields ─────────────
+print("\n── Query 10: Countries with most distinct fields of research ──");
+db.people.aggregate([
+  { $unwind: "$fields" },
+  { $group: { _id: "$country", fields: { $addToSet: "$fields" } } },
+  { $project: {
+      country_name: "$_id",
+      distinct_fields: { $size: "$fields" },
+      fields_contributed: "$fields",
+      _id: 0
+  }},
+  { $sort: { distinct_fields: -1 } }
+]).forEach(printjson);
+
+print("\n✓ All 10 queries complete.");
